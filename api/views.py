@@ -1,7 +1,7 @@
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, get_objects_for_user
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .permissions import ObjCanDeleteBudgetObj
+from .permissions import ObjCanDeleteBudgetObj, ObjCanChangeBudgetObj, ObjCanViewBudgetObj
 
 from .models import BudgetObj
 from .serializers import BudgetObjSerializer
@@ -16,6 +16,12 @@ class BudgetObjViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         elif self.action == 'destroy':
             permission_classes = [IsAuthenticated, ObjCanDeleteBudgetObj]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, ObjCanViewBudgetObj]
+        elif self.action == 'update' or self.action == 'partial_update':
+            permission_classes = [IsAuthenticated, ObjCanChangeBudgetObj]
+        elif self.action == 'list':
+            permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
         return [permission() for permission in permission_classes]
@@ -29,3 +35,14 @@ class BudgetObjViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    def filter_queryset(self, queryset):
+        return super().filter_queryset(queryset).filter(
+            pk__in=get_objects_for_user(self.request.user, 'view_budgetobj', klass=BudgetObj)
+        )
+
+
+
+
+
+
