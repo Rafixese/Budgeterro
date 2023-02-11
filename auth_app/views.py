@@ -12,9 +12,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'destroy':
             permission_classes = [IsAuthenticated, IsAdminUser]
+        elif self.action == 'update':
+            permission_classes = [IsAuthenticated, IsAdminUser]
         else:
             permission_classes = []
         return [permission() for permission in permission_classes]
-
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
